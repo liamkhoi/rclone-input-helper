@@ -2,4 +2,4 @@
 .vscode/
 
 #Ignore workspace file
-*.code-workspace
+rclone-input-helper.code-workspace
