@@ -17,6 +17,10 @@ void disclaimer(){
     - Would be happy to receive contributions. Thank you! <3
           )";
     std::cout << "\r" << note << "\n";
+    std::cout << "\r" << "Press Enter to start using...";
+    std::cin.ignore();
+
+    system("cls");
 }
 
 int check4rclone(){
@@ -35,7 +39,6 @@ int check4rclone(){
 }
 
 int provideOptions(int checked) {
-    int optionSelect = 0;
     std::cout << "\r\n" << "    - rclone basic input utility v.1.0 by LiamKhoi -    " << "\n";
     std::string optionText = R"(
         [1] Run remote config
@@ -44,19 +47,27 @@ int provideOptions(int checked) {
         [4] Mount
         [5] View rclone version info
         [6] Terminate running tasks
-        [7] Quit 
+        [ESC] Quit 
         )";
     std::string ask4option = R"(Select what you need to do: )";
-    std::cout << optionText;
-    std::cout << "\n" << ask4option;
-    if (!(std::cin >> optionSelect)) {
+    std::cout << optionText << "\n" << ask4option << std::flush;
+
+    /*if (!(std::cin >> optionSelect)) {
         std::cin.clear(); // Clear the fail flag
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear input buffer
         return 0; 
     }
     // Clear input buffer
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    return optionSelect;
+    */
+    char optionSelect = _getch();
+    if (optionSelect == 27){
+        return 27;
+    }
+    else if (optionSelect >= '1' && optionSelect <= '7') {
+        // If a valid option (1-7) is pressed
+        return optionSelect - '0'; // Convert char to integer
+    }
 }
 
 void millisecsDelay(int millisecs){
@@ -188,12 +199,7 @@ void taskTerminate(){
 
 // input values corresponding to its functions
 int optionExecution(int selectValue){
-    if (selectValue == 0 || selectValue > 7){
-        system("cls");
-        std::cout << "\r" << "No valid input.";
-        return 1;
-    }
-    else if (selectValue == 1){
+    if (selectValue == 1){
         remoteConfig();
         millisecsDelay(3000);
         return 0;
@@ -223,7 +229,7 @@ int optionExecution(int selectValue){
         millisecsDelay(500);
         return 0;
     }
-    else if (selectValue == 7){
+    else if (selectValue == 27){ // number 27 corresponds to the ESC key in the ASCII table, which in this case was pressed when asked for an option.
         return -1;
     }
 }
