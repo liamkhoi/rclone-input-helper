@@ -7,6 +7,7 @@
 #include <conio.h>
 
 bool loop;
+std::string tabLength = "    ";
 
 void disclaimer(){
     std::string note = R"(
@@ -24,7 +25,6 @@ void disclaimer(){
 }
 
 int check4rclone(){
-    std::cout << "\r" << "Checking for rclone..." << "\n";
     const char* filename = "rclone.exe";
     FILE *file;
     if (file = fopen(filename, "r")){
@@ -33,40 +33,35 @@ int check4rclone(){
         return 0;
     }
     else {
-        std::cout << "\r" << "Rclone.exe not found. Please run this program in the same directory with rclone.exe" << "\n";
+        std::cout << "\r" << "Unable to locate rclone.exe. Please run this program in the same directory with rclone.exe" << "\n";
         return 1;
     }
 }
 
 int provideOptions(int checked) {
     std::cout << "\r\n" << "    - rclone basic input utility v.1.0 by LiamKhoi -    " << "\n";
-    std::string optionText = R"(
-        [1] Run remote config
-        [2] View remotes
-        [3] Sync
-        [4] Mount
-        [5] View rclone version info
-        [6] Terminate running tasks
-        [ESC] Quit 
-        )";
-    std::string ask4option = R"(Select what you need to do: )";
-    std::cout << optionText << "\n" << ask4option << std::flush;
+    unsigned int corresWidth = 8;
+    std::cout << std::left;
+    std::cout << tabLength << std::setw(corresWidth) << "[1]" << "Run remote config" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[2]" << "View remotes" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[3]" << "Sync" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[4]" << "Mount" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[5]" << "View rclone version info" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[6]" << "Terminate running tasks" << "\n";
+    std::cout << tabLength << std::setw(corresWidth) << "[ESC]" << "Quit" << "\n";
 
-    /*if (!(std::cin >> optionSelect)) {
-        std::cin.clear(); // Clear the fail flag
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear input buffer
-        return 0; 
-    }
-    // Clear input buffer
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    */
+    std::string ask4option = R"(Press the corresponding key to select)";
+    std::cout << "\n" << ask4option << std::flush;
     char optionSelect = _getch();
     if (optionSelect == 27){
         return 27;
     }
     else if (optionSelect >= '1' && optionSelect <= '7') {
-        // If a valid option (1-7) is pressed
+        system("cls");
         return optionSelect - '0'; // Convert char to integer
+    }
+    else {
+        return 0;
     }
 }
 
@@ -78,8 +73,16 @@ void millisecsDelay(int millisecs){
 
 void returnEnter(){
     std::cout << "\n";
-    std::cout << "\r" << "Press enter to return to the option menu...";
-    std::cin.ignore();
+    std::cout << "\r" << "Press Enter to return to the option menu...";
+    bool lock = 1;
+    while (lock) {
+        if (_kbhit()) {
+            char askedInput = _getch();
+            if (askedInput == 13) {
+                lock = 0; 
+            }
+        }
+    }
 }
 
 void cleanedBufferReturn(){
@@ -119,16 +122,19 @@ int mountSelect(int& mountInput) {
 void mount(){
     remoteList();
     std::this_thread::sleep_for(std::chrono::microseconds(500));
-    std::cout << "\r" << "Invalid input will not work." << "\n";
+    unsigned int corresWidth = 18;
+    std::cout << std::left;
+    std::cout << "\r" << tabLength << "Warning: Invalid input will not work." << "\n\n";
     std::string remoteName;
     std::string driveLetter;
-    std::cout << "\r" << "Remote name (no colon): ";
+    std::cout << "\r" << std::setw(corresWidth) << "Remote name: " << "| ";
     std::cin >> remoteName;
-    std::cout << "\r" << "Drive letter (no colon): ";
+    std::cout << "\r" <<  std::setw(corresWidth) << "Drive letter: " << "| ";
     std::cin >> driveLetter;
-    std::string mountCommandJoint = "start /B cmd /c rclone mount " + remoteName + ": " + driveLetter + ": --vfs-cache-mode full > NUL 2>&1";
+    std::string mountCommandJoint = "start /B cmd /c rclone mount " + remoteName + " " + driveLetter + " --vfs-cache-mode full > NUL 2>&1";
     system(mountCommandJoint.c_str());
-    std::cout << "\r" <<  remoteName << " (" << driveLetter << ":) has been mounted." << "\n" << "\n";
+    remoteName.erase(remoteName.size() - 1);
+    std::cout << "\r" <<  remoteName << " (" << driveLetter << ") has been mounted." << "\n" << "\n";
     millisecsDelay(1000);
     cleanedBufferReturn();
 }
@@ -232,6 +238,9 @@ int optionExecution(int selectValue){
     else if (selectValue == 27){ // number 27 corresponds to the ESC key in the ASCII table, which in this case was pressed when asked for an option.
         return -1;
     }
+    else if (selectValue == 0){
+        return 0;
+    }
 }
 
 int main(){
@@ -252,12 +261,12 @@ int main(){
         if (optionExecDone == -1){
             loop = false;
         }
-        if (optionExecDone == 0){
+        else if (optionExecDone == 0){
             system("cls");
         }
 
     }
-
+    system("cls");
     std::cout << "\r\n" << "Program will exit..." << "\n";
     millisecsDelay(1000);
     return 0;
