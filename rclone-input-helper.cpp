@@ -5,6 +5,9 @@
 #include <chrono>
 #include <thread>
 #include <conio.h>
+#include <limits>
+#include <vector>
+#include <sstream>
 
 bool loop;
 std::string tabLength = "    ";
@@ -69,6 +72,31 @@ void millisecsDelay(int millisecs){
     std::this_thread::sleep_for(std::chrono::milliseconds(millisecs));
 }
 
+//output parsing
+std::string execCommand(const std::string& cmd) {
+    std::string result;
+    char buffer[128];
+    FILE* pipe = _popen(cmd.c_str(), "r");
+    if (!pipe) return "ERROR";
+
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+
+    _pclose(pipe);
+    return result;
+}
+
+std::vector<std::string> splitByLine(const std::string& input) {
+    std::vector<std::string> lines;
+    std::stringstream ss(input);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (!line.empty()) lines.push_back(line);
+    }
+    return lines;
+}
+
 //all rclone operation functions here
 
 void returnEnter(){
@@ -93,8 +121,22 @@ void cleanedBufferReturn(){
 
 void remoteList(){
     std::cout << "\n";
-    std::cout << "\r" << "--Remote list--" << "\n";
-    system("rclone listremotes");
+    std::cout << "\r" << "-- Remote list (parsed testing) --" << "\n";
+
+    std::string output = execCommand("rclone listremotes");
+    if (output == "ERROR") {
+        std::cout << "\r" << "Failed to run rclone listremotes." << "\n";
+        return;
+    }
+
+    std::vector<std::string> remotes = splitByLine(output);
+    if (remotes.empty()) {
+        std::cout << "\r" << "No remotes found." << "\n";
+    } else {
+        for (const auto& remote : remotes) {
+            std::cout << "\r" << remote << "\n";
+        }
+    }
 }
 
 void remoteConfig(){
